@@ -2,7 +2,8 @@
 # defaults file for ansible-role-redmine/
 
 redmine_version: "3.1.0"
-redmine_home: "/home/redmine/redmine-{{ redmine_version }}"
+redmine_topdir: "/home/redmine"
+redmine_apphome: "{{ redmine_topdir }}/redmine-{{ redmine_version }}"
 
 sql_database_name: "redmine"
 sql_database_host: "localhost"

@@ -59,36 +59,37 @@
      state=present
 
  - name: Create the Redmine user
-   user: name=redmine
+   user: name=redmine home={{ redmine_topdir }}
+
 
  - name: Check redmine catalog
-   stat: path={{ redmine_home }}
+   stat: path={{ redmine_appdir }}
    register: redmine_cat
 
  - name: Download Redmine
    get_url:
      url=http://www.redmine.org/releases/redmine-{{ redmine_version }}.tar.gz
-     dest=/home/redmine/
+     dest={{ redmine_topdir }}
    become: yes
    become_user: redmine
    when: redmine_cat.stat.exists == False
 
  - name: Unpack Redmine source tarball
    unarchive:
-     src=/home/redmine/redmine-{{ redmine_version }}.tar.gz
-     dest=/home/redmine/
+     src={{ redmine_topdir }}/redmine-{{ redmine_version }}.tar.gz
+     dest={{ redmine_topdir }}
      copy=no
    become: yes
    become_user: redmine
    when: redmine_cat.stat.exists == False
 
  - name: Upload the Redmine configuration file
-   template: src=database.yml.j2 dest={{ redmine_home }}/config/database.yml
+   template: src=database.yml.j2 dest={{ redmine_appdir }}/config/database.yml
    become: yes
    become_user: redmine
 
  - name: Set install dir for bundler executable
-   template: src=gemrc.j2 dest=/home/redmine/.gemrc
+   template: src=gemrc.j2 dest={{ redmine_topdir }}/.gemrc
    become: yes
    become_user: redmine
 
@@ -99,35 +100,35 @@
 
    # Bundler module is available in Ansible 2.0
  - name: Install the required gems via bundler
-   shell: /home/redmine/bin/bundler install --path vendor/bundler --without development test rmagick
+   shell: "{{ redmine_topdir }}/bin/bundler install --path vendor/bundler --without development test rmagick"
    become: yes
    become_user: redmine
    args:
-     chdir: "{{ redmine_home }}"
+     chdir: "{{ redmine_appdir }}"
  
  - name: Generate secret token
-   shell: /home/redmine/bin/bundle exec rake generate_secret_token
+   shell: "{{ redmine_topdir }}/bin/bundle exec rake generate_secret_token"
    become: yes
    become_user: redmine
    args:
-     chdir: "{{ redmine_home }}"
+     chdir: "{{ redmine_appdir }}"
 
  - name: DB Migrate
-   shell: RAILS_ENV=production /home/redmine/bin/bundle  exec rake db:migrate
+   shell: RAILS_ENV=production {{ redmine_topdir }}/bin/bundle  exec rake db:migrate
    become: yes
    become_user: redmine
    args:
-     chdir: "{{ redmine_home }}"
+     chdir: "{{ redmine_appdir }}"
  
  - name: Default data
-   shell: RAILS_ENV=production REDMINE_LANG=en /home/redmine/bin/bundle exec rake redmine:load_default_data
+   shell: RAILS_ENV=production REDMINE_LANG=en {{ redmine_topdir }}/bin/bundle exec rake redmine:load_default_data
    become: yes
    become_user: redmine
    args:
-     chdir: "{{ redmine_home }}"
+     chdir: "{{ redmine_appdir }}"
 
  - name: temp dir
-   file: path={{ redmine_home }}/{{ item }} state=directory
+   file: path={{ redmine_appdir }}/{{ item }} state=directory
      owner=redmine
      group=redmine
      mode=0755
@@ -151,8 +152,8 @@
    iptables: chain=INPUT destination_port=5000 protocol=tcp jump=ACCEPT
    when: firewall == "iptables"
 
+   ## run webrick webserver for testing
    # bundle exec rails server webrick -e production
+   ## login
    # admin/admin
-
-
 

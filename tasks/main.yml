@@ -58,13 +58,15 @@
      priv={{ sql_database_name }}.*:ALL
      state=present
 
+ - name: Create topdir parent directory
+   file: path={{ redmine_topdir | dirname }} state=directory recurse=yes
+
  - name: Create the Redmine user
-   user: name=redmine home={{ redmine_topdir }}
+   user: name=redmine system=yes home={{ redmine_topdir }}
 
-
- - name: Check redmine catalog
+ - name: Check if Redmine app directory already exists
    stat: path={{ redmine_appdir }}
-   register: redmine_cat
+   register: redmine_install_dest
 
  - name: Download Redmine
    get_url:
@@ -72,7 +74,7 @@
      dest={{ redmine_topdir }}
    become: yes
    become_user: redmine
-   when: redmine_cat.stat.exists == False
+   when: redmine_install_dest.stat.exists == False
 
  - name: Unpack Redmine source tarball
    unarchive:
@@ -81,7 +83,14 @@
      copy=no
    become: yes
    become_user: redmine
-   when: redmine_cat.stat.exists == False
+   when: redmine_install_dest.stat.exists == False
+
+ - name: Create appdir parent directory
+   file: path={{ redmine_appdir | dirname }} state=directory recurse=yes
+
+ - name: Install unpacked Redmine to separate app directory
+   command: mv {{ redmine_topdir }}/redmine-{{ redmine_version }} {{ redmine_appdir }}
+   when: redmine_topdir + "/redmine-" + redmine_version != redmine_appdir
 
  - name: Upload the Redmine configuration file
    template: src=database.yml.j2 dest={{ redmine_appdir }}/config/database.yml

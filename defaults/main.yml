@@ -5,12 +5,21 @@ redmine_version: "3.1.0"
 redmine_topdir: "/home/redmine"
 redmine_appdir: "{{ redmine_topdir }}/redmine-{{ redmine_version }}"
 
+# supported sql database types: postgresql, mysql (actually mariadb, on some distros)
+sql_database_type: "mysql"
 sql_database_name: "redmine"
 sql_database_host: "localhost"
 sql_username: "redmine"
 sql_password: "redmine"
 
-http_port: 3000
+# supported app server types: uwsgi
+app_server_type: "uwsgi"
+
+# supported web server types: lighttpd, hiawatha, uwsgi
+web_server_type: "uwsgi"
+web_server_hostname: "localhost"
+web_server_ip: "127.0.0.1"
+web_server_port: 3000
 
 # supported firewall types: firewalld, ufw, iptables
 firewall: ""

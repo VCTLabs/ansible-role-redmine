@@ -1,62 +1,34 @@
 ---
- - name: Install the required dependencies (yum)
+ - name: Install common dependencies (yum)
    yum: state=installed name={{ item }}
    with_items:
-    - mariadb-server
     - ruby-devel
     - ImageMagick-devel
     - make
     - gcc
     - patch
-    - mariadb-devel
-    - MySQL-python
    when: ansible_os_family == "RedHat"
 
  # note the mariadb dev package is missing mysql_config, use mysql one instaead
- - name: Install the required dependencies (apt)
+ - name: Install common dependencies (apt)
    apt: state=installed name={{ item }}
    with_items:
-    - mariadb-server
     - ruby-dev
     - rubygems
     - imagemagick
     - make
     - gcc
     - patch
-    - libmysqlclient-dev
-    - python-mysqldb
    when: ansible_os_family == "Debian"
 
- - name: Install the required dependencies (portage)
+ - name: Install common dependencies (portage)
    portage: state=installed name={{ item }}
    with_items:
-    - dev-db/mariadb
     - dev-lang/ruby
     - media-gfx/imagemagick
-    - dev-python/mysql-python
    when: ansible_os_family == "Gentoo"
 
- - name: Enable MariaDB server (try real name)
-   service: name=mariadb state=started enabled=yes
-   register: db_started
-   ignore_errors: True
-
- # some distros call service "mysql" since MariaDB is drop-in replacement
- - name: Enable MariaDB server (try 'mysql' as name)
-   service: name=mysql state=started enabled=yes
-   when: db_started|failed
-
- - name: Create redmine DB
-   mysql_db:
-     name={{ sql_database_name }} state=present
-
- - name: Create redmine DB user
-   mysql_user:
-     name={{ sql_username}}
-     password={{ sql_password }}
-     host={{ sql_database_host }}
-     priv={{ sql_database_name }}.*:ALL
-     state=present
+ - include: db/{{ sql_database_type }}.yml
 
  - name: Create topdir parent directory
    file: path={{ redmine_topdir | dirname }} state=directory recurse=yes
@@ -93,7 +65,7 @@
    when: redmine_topdir + "/redmine-" + redmine_version != redmine_appdir
 
  - name: Upload the Redmine configuration file
-   template: src=database.yml.j2 dest={{ redmine_appdir }}/config/database.yml
+   template: src=db/database-{{ sql_database_type }}.yml.j2 dest={{ redmine_appdir }}/config/database.yml
    become: yes
    become_user: redmine
 
@@ -131,10 +103,10 @@
  
  - name: Default data
    shell: RAILS_ENV=production REDMINE_LANG=en {{ redmine_topdir }}/bin/bundle exec rake redmine:load_default_data
-   become: yes
-   become_user: redmine
    args:
      chdir: "{{ redmine_appdir }}"
+   become: yes
+   become_user: redmine
 
  - name: temp dir
    file: path={{ redmine_appdir }}/{{ item }} state=directory
@@ -147,22 +119,25 @@
    - "files"
    - "log"
 
- - name: Open http port (firewalld)
-   firewalld: port={{ http_port }}/tcp permanent=true state=enabled
-   notify:
-   - Firewalld reload
-   when: firewall == "firewalld"
+ - name: Get ruby gem install path for use in web integration
+   command: ruby -e 'print Gem.user_dir'
+   register: gem_dir
+   become: yes
+   become_user: redmine
 
- - name: Open http port (ufw)
-   ufw: rule=allow port={{ http_port }} proto=tcp
-   when: firewall == "ufw"
+ - name: Get ruby bundler install path for use in web integration
+   command: ruby -e 'require "bundler" ; print Bundler.bundle_path'
+   args:
+     chdir: "{{ redmine_appdir }}"
+   register: bundler_dir
+   become: yes
+   become_user: redmine
 
- - name: Open http port (iptables)
-   iptables: chain=INPUT destination_port=5000 protocol=tcp jump=ACCEPT
-   when: firewall == "iptables"
+ - include: web/{{ app_server_type }}-{{ web_server_type }}.yml
 
-   ## run webrick webserver for testing
-   # bundle exec rails server webrick -e production
-   ## login
-   # admin/admin
+ - include: firewall.yml
 
+ ## run webrick webserver for testing
+ # bundle exec rails server webrick -e production
+ ## login
+ # admin/admin

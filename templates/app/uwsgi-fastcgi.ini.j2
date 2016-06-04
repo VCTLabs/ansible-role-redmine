@@ -1,0 +1,19 @@
+; {{ansible_managed}}
+
+[uwsgi]
+plugins = rack
+fastcgi-socket = /run/uwsgi/redmine.sock 
+; fix up bogus PATH_INFO and SCRIPT_NAME from hiawatha
+; Note: can't use 'route' to update PATH_INFO, since it starts out unset
+route-host = .* addvar:PATH_INFO=${REQUEST_URI}
+route-host = .* addvar:SCRIPT_NAME=
+rack = config.ru 
+env = RAILS_ENV=production 
+env = GEM_PATH={{ gem_dir.stdout }}:{{ bundler_dir.stdout }}
+chdir = {{ redmine_appdir }}
+uid = redmine
+gid = redmine
+chown-socket = www-data:www-data
+chmod-socket = 600
+logto = /var/log/redmine/uwsgi-fastcgi.log
+logformat = [%(ltime)] METHOD '%(method)' URI '%(uri)' PATH_INFO '%(var.PATH_INFO)' SCRIPT_NAME '%(var.SCRIPT_NAME)' STATUS '%(status)'

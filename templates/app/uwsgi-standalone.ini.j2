@@ -1,0 +1,13 @@
+; {{ansible_managed}}
+
+[uwsgi]
+plugins = http,rack 
+http = {{ web_server_ip }}:{{ web_server_port }}
+rack = config.ru 
+env = RAILS_ENV=production 
+env = GEM_PATH={{ gem_dir.stdout }}:{{ bundler_dir.stdout }}
+chdir = {{ redmine_appdir }}
+uid = redmine
+gid = redmine
+logto = /var/log/redmine/uwsgi-standalone.log
+logformat = [%(ltime)] METHOD '%(method)' URI '%(uri)' PATH_INFO '%(var.PATH_INFO)' SCRIPT_NAME '%(var.SCRIPT_NAME)' STATUS '%(status)'

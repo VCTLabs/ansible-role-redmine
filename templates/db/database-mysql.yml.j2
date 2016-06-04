@@ -1,5 +1,4 @@
-# Default setup is given for MySQL with ruby1.9.
-# Examples for PostgreSQL, SQLite3 and SQL Server can be found at the end.
+# {{ansible_managed}}
 # Line indentation must be 2 spaces (no tabs).
 
 production:
@@ -28,24 +27,3 @@ test:
   username: root
   password: ""
   encoding: utf8
-
-# PostgreSQL configuration example
-#production:
-#  adapter: postgresql
-#  database: redmine
-#  host: localhost
-#  username: postgres
-#  password: "postgres"
-
-# SQLite3 configuration example
-#production:
-#  adapter: sqlite3
-#  database: db/redmine.sqlite3
-
-# SQL Server configuration example
-#production:
-#  adapter: sqlserver
-#  database: redmine
-#  host: localhost
-#  username: jenkins
-#  password: jenkins

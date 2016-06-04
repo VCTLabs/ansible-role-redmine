@@ -1,0 +1,45 @@
+---
+ - name: Install mysql dependencies (yum)
+   yum: state=installed name={{ item }}
+   with_items:
+    - mariadb-server
+    - mariadb-devel
+    - MySQL-python
+   when: ansible_os_family == "RedHat"
+
+ # note the mariadb dev package is missing mysql_config, use mysql one instaead
+ - name: Install mysql dependencies (apt)
+   apt: state=installed name={{ item }}
+   with_items:
+    - mariadb-server
+    - libmysqlclient-dev
+    - python-mysqldb
+   when: ansible_os_family == "Debian"
+
+ - name: Install mysql dependencies (portage)
+   portage: state=installed name={{ item }}
+   with_items:
+    - dev-db/mariadb
+    - dev-python/mysql-python
+   when: ansible_os_family == "Gentoo"
+
+ - name: Enable mysql server (try 'mysql' as name)
+   service: name=mysql state=started enabled=yes
+   register: db_started
+   ignore_errors: True
+
+ - name: Enable mysql server (try 'mariadb' as name)
+   service: name=mariadb state=started enabled=yes
+   when: db_started|failed
+
+ - name: Create redmine DB
+   mysql_db:
+     name={{ sql_database_name }} state=present
+
+ - name: Create redmine DB user
+   mysql_user:
+     name={{ sql_username}}
+     password={{ sql_password }}
+     priv={{ sql_database_name }}.*:ALL
+     state=present
+

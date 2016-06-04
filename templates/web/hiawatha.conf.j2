@@ -1,0 +1,28 @@
+# {{ansible_managed}}
+
+Binding {
+	BindingId = redmine_port
+	Interface = {{ web_server_ip }}
+	Port = {{ web_server_port }}
+}
+
+FastCGIserver {
+	FastCGIid = redmine_fcgi
+	ConnectTo = /tmp/redmine.sock
+}
+
+UrlToolkit {
+	ToolkitID = rails_urls
+	RequestURI isfile Return
+	Match .* UseFastCGI redmine_fcgi
+}
+
+VirtualHost {
+	RequiredBinding = redmine_port
+	Hostname = {{ web_server_hostname }}
+	WebsiteRoot = {{ redmine_appdir }}
+	TimeForCGI = 20
+	UseToolkit = rails_urls
+        ## needed?
+	#FollowSymLinks = yes
+}

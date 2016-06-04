@@ -1,0 +1,31 @@
+server.modules += (
+    "mod_fastcgi",
+)
+
+$SERVER["socket"] == "{{ web_server_ip }}:{{ web_server_port }}" {
+
+    fastcgi.server = (
+        "/" => (
+            "main" => (
+                "socket" => "/run/{{ app_server_type }}/redmine.sock",
+                "check-local" => "disable",
+                "fix-root-scriptname" => "enable"
+            )
+        ),
+    )
+
+    mimetype.assign = (
+        ".gif"  => "image/gif",
+        ".jpg"  => "image/jpeg",
+        ".jpeg" => "image/jpeg",
+        ".ico"  => "image/png",
+        ".png"  => "image/png",
+        ".pdf"  => "application/pdf",
+        ".gz"   => "application/x-gzip",
+        ".css"  => "text/css",
+        ".html" => "text/html",
+        ".htm"  => "text/html",
+        ".txt"  => "text/plain",
+        ".js"   => "text/javascript",
+    )
+}

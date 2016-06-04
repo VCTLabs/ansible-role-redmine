@@ -1,0 +1,52 @@
+---
+ - name: Install uwsgi dependencies (yum)
+   yum: state=installed name={{ item }}
+   with_items:
+    - uwsgi
+    - uwsgi-plugin-rack
+   when: ansible_os_family == "RedHat"
+
+ - name: Get ruby version
+   shell: ruby -e "print RUBY_VERSION" | cut -f1-2 -d.
+   register: ruby_version
+   when: ansible_os_family == "Debian"
+   
+ - name: Install uwsgi dependencies (apt)
+   apt: state=installed name={{ item }}
+   with_items:
+    - uwsgi
+    - uwsgi-plugin-rack-ruby{{ ruby_version.stdout }}
+   when: ansible_os_family == "Debian"
+
+ #@@@ need 'ruby' useflag enabled
+ - name: Install uwsgi dependencies (portage)
+   portage: state=installed name={{ item }}
+   with_items:
+    - www-servers/uwsgi
+   when: ansible_os_family == "Gentoo"
+
+ - name: Install uwsgi standalone config (/etc/uwsgi.d/)
+   template: 
+     src: app/uwsgi-standalone.ini.j2 
+     dest: /etc/uwsgi.d/uwsgi-redmine-standalone.ini
+     owner: redmine
+     group: redmine
+   when: ansible_os_family != "Debian"
+
+ - name: Install uwsgi standalone config (/etc/uwsgi/apps-enabled/)
+   template:
+     src: app/uwsgi-standalone.ini.j2 
+     dest: /etc/uwsgi/apps-enabled/uwsgi-redmine-standalone.ini
+     owner: redmine
+     group: redmine
+   when: ansible_os_family == "Debian"
+
+ - name: Create uwsgi log directory
+   file: 
+     path: /var/log/redmine
+     state: directory
+     owner: redmine
+     group: redmine
+
+ - name: Enable uwsgi server 
+   service: name=uwsgi state=started enabled=yes

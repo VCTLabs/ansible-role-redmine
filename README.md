@@ -1,28 +1,30 @@
 Role Name
 =========
 
-THIS MODULE IS IN BETA. YOUR FEEDBACK IS APPRECIATED.
-
-Install Redmine 3 on CentOS. Eventually, we will support other operating
-systems. Right now, only CentOS 7.
+Install Redmine on RedHat / CentOS 7, Debian Jessie, or Gentoo
 
 Requirements
 ------------
 
-This role will install the necessary components from official CentOS 7
-repositories. Redmine will be downloaded from redmine.org and required Ruby
-gems from rubygems.org.
-
+When hiawatha or lighttpd is selected as web server, the packages needed to run it with fcgi support should be installed ahead of time. This role does not currently install those packages. Note that hiawatha is not available in official repos for RedHat or Debia.
 
 Role Variables
 --------------
 
 * redmine_version
-* sql_username
-* sql_password
+* redmine_topdir
+* redmine_appdir
+* sql_database_type
 * sql_database_name
 * sql_database_host
-
+* sql_username
+* sql_password
+* app_server_type
+* web_server_type
+* web_server_hostname
+* web_server_ip
+* web_server_port
+* firewall_type
 
 Dependencies
 ------------
@@ -38,7 +40,7 @@ Example playbook
     - hosts: servers
       remote_user: root
       roles:
-         - { role: bngsudheer.redmine, sql_username: redmine, sql_password: password, sql_database_name: redmine, sql_database_host: localhost, redmine_version: 3.2.1}
+         - { role: redmine, sql_username: redmine, sql_password: password, sql_database_name: redmine, sql_database_host: localhost, redmine_version: 3.2.1, app_server_type: uwsgi, web_server_type: uwsgi, firewall_type: firewalld }
 
 License
 -------
@@ -48,6 +50,5 @@ BSD
 Author Information
 ------------------
 
-Sudheer Satyanarayana
-Blog: http://www/techchorhs.net
-Twitter: http:/www.twitter.com
+S. Lockwood-Childs
+based on bngsudheer.redmine role by Sudheer Satyanarayana

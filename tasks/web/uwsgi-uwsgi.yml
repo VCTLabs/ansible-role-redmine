@@ -25,22 +25,28 @@
     - www-servers/uwsgi
    when: ansible_os_family == "Gentoo"
 
- - name: Get rack plugin name for config file (RedHat)
-   # just plain 'rack'
-   shell: echo rack
-   register: rack_plugin_name
+ - name: Set rack plugin name for config file (RedHat)
+   # just plain 'rack' for RedHat
+   set_fact: rack_plugin_name=rack
    when: ansible_os_family == "RedHat"
    
- - name: Get rack plugin name for config file (non-RedHat)
+ - name: Calculate rack plugin name (non-RedHat)
    # 'rack_ruby$RUBYVER' where RUBYVER skips dot  x.y => xy 
    shell: echo rack_ruby{{ ruby_version.stdout }} | tr -d '.'
-   register: rack_plugin_name
+   register: versioned_rack_plugin_name
    when: ansible_os_family != "RedHat"
-   
+
+ - name: Set rack plugin name for config file (non-RedHat)
+   set_fact: rack_plugin_name="{{ versioned_rack_plugin_name.stdout }}"
+   when: ansible_os_family != "RedHat"
+
+ - debug: msg="rack_plugin_name={{ rack_plugin_name }}"
+
  - name: Install uwsgi standalone config (/etc/uwsgi.d/)
    template: 
      src: app/uwsgi-standalone.ini.j2 
      dest: /etc/uwsgi.d/uwsgi-redmine-standalone.ini
+     # install config with owner of app to make uwsgi emperor mode happy
      owner: redmine
      group: redmine
    when: ansible_os_family != "Debian"

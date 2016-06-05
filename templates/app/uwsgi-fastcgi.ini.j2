@@ -1,7 +1,7 @@
 ; {{ansible_managed}}
 
 [uwsgi]
-plugins = {{ rack_plugin_name.stdout }}
+plugins = {{ rack_plugin_name }}
 fastcgi-socket = /run/uwsgi/redmine.sock 
 ; fix up bogus PATH_INFO and SCRIPT_NAME from hiawatha
 ; Note: can't use 'route' to update PATH_INFO, since it starts out unset

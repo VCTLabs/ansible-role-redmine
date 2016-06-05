@@ -7,7 +7,7 @@ $SERVER["socket"] == "{{ web_server_ip }}:{{ web_server_port }}" {
     fastcgi.server = (
         "/" => (
             "main" => (
-                "socket" => "/run/{{ app_server_type }}/redmine.sock",
+                "socket" => "/tmp/redmine.sock",
                 "check-local" => "disable",
                 "fix-root-scriptname" => "enable"
             )

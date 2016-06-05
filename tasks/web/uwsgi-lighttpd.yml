@@ -1,0 +1,78 @@
+---
+ - name: Get ruby version
+   # major and minor but no patch number x.y.z => x.y
+   shell: ruby -e "print RUBY_VERSION" | cut -f1-2 -d.
+   register: ruby_version
+   
+ - name: Install uwsgi dependencies (yum)
+   yum: state=installed name={{ item }}
+   with_items:
+    - uwsgi
+    - uwsgi-plugin-rack
+   when: ansible_os_family == "RedHat"
+
+ - name: Install uwsgi dependencies (apt)
+   apt: state=installed name={{ item }}
+   with_items:
+    - uwsgi
+    - uwsgi-plugin-rack-ruby{{ ruby_version.stdout }}
+   when: ansible_os_family == "Debian"
+
+ #@@@ need 'ruby' useflag enabled
+ - name: Install uwsgi dependencies (portage)
+   portage: state=installed name={{ item }}
+   with_items:
+    - www-servers/uwsgi
+   when: ansible_os_family == "Gentoo"
+
+ - name: Set rack plugin name for config file (RedHat)
+   # just plain 'rack' for RedHat
+   set_fact: rack_plugin_name=rack
+   when: ansible_os_family == "RedHat"
+   
+ - name: Calculate rack plugin name (non-RedHat)
+   # 'rack_ruby$RUBYVER' where RUBYVER skips dot  x.y => xy 
+   shell: echo rack_ruby{{ ruby_version.stdout }} | tr -d '.'
+   register: versioned_rack_plugin_name
+   when: ansible_os_family != "RedHat"
+
+ - name: Set rack plugin name for config file (non-RedHat)
+   set_fact: rack_plugin_name="{{ versioned_rack_plugin_name.stdout }}"
+   when: ansible_os_family != "RedHat"
+
+ - debug: msg="rack_plugin_name={{ rack_plugin_name }}"
+
+ - name: Install uwsgi fastcgi config (/etc/uwsgi.d/)
+   template: 
+     src: app/uwsgi-fastcgi.ini.j2 
+     dest: /etc/uwsgi.d/uwsgi-redmine-fastcgi.ini
+     # install config with owner of app to make uwsgi emperor mode happy
+     owner: redmine
+     group: redmine
+   when: ansible_os_family != "Debian"
+
+ - name: Install uwsgi fastcgi config (/etc/uwsgi/apps-enabled/)
+   template:
+     src: app/uwsgi-fastcgi.ini.j2 
+     dest: /etc/uwsgi/apps-enabled/uwsgi-redmine-fastcgi.ini
+     owner: redmine
+     group: redmine
+   when: ansible_os_family == "Debian"
+
+ - name: Create uwsgi log directory
+   file: 
+     path: /var/log/redmine
+     state: directory
+     owner: redmine
+     group: redmine
+
+ - name: Enable uwsgi server 
+   service: name=uwsgi state=started enabled=yes
+
+ - name: Install lighttpd fastcgi config 
+   template: 
+     src: web/lighttpd.conf.j2 
+     dest: /etc/lighttpd/vhosts.d/redmine.conf
+
+ - name: Enable lighttpd server
+   service: name=lighttpd state=started enabled=yes

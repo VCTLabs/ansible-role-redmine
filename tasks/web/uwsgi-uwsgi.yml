@@ -1,4 +1,9 @@
 ---
+ - name: Get ruby version
+   # major and minor but no patch number x.y.z => x.y
+   shell: ruby -e "print RUBY_VERSION" | cut -f1-2 -d.
+   register: ruby_version
+   
  - name: Install uwsgi dependencies (yum)
    yum: state=installed name={{ item }}
    with_items:
@@ -6,11 +11,6 @@
     - uwsgi-plugin-rack
    when: ansible_os_family == "RedHat"
 
- - name: Get ruby version
-   shell: ruby -e "print RUBY_VERSION" | cut -f1-2 -d.
-   register: ruby_version
-   when: ansible_os_family == "Debian"
-   
  - name: Install uwsgi dependencies (apt)
    apt: state=installed name={{ item }}
    with_items:
@@ -25,6 +25,18 @@
     - www-servers/uwsgi
    when: ansible_os_family == "Gentoo"
 
+ - name: Get rack plugin name for config file (RedHat)
+   # just plain 'rack'
+   shell: echo rack
+   register: rack_plugin_name
+   when: ansible_os_family == "RedHat"
+   
+ - name: Get rack plugin name for config file (non-RedHat)
+   # 'rack_ruby$RUBYVER' where RUBYVER skips dot  x.y => xy 
+   shell: echo rack_ruby{{ ruby_version.stdout }} | tr -d '.'
+   register: rack_plugin_name
+   when: ansible_os_family != "RedHat"
+   
  - name: Install uwsgi standalone config (/etc/uwsgi.d/)
    template: 
      src: app/uwsgi-standalone.ini.j2 

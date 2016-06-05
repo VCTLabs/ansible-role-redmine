@@ -1,7 +1,7 @@
 ; {{ansible_managed}}
 
 [uwsgi]
-plugins = http,rack 
+plugins = http,{{ rack_plugin_name.stdout }} 
 http = {{ web_server_ip }}:{{ web_server_port }}
 rack = config.ru 
 env = RAILS_ENV=production 

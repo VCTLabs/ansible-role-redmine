@@ -3,22 +3,15 @@
 
 production:
   adapter: postgresql
-  database: redmine
-  host: localhost
-  username: postgres
-  password: "postgres"
-
-production:
-  adapter: postgresql
   database: {{ sql_database_name }}
-  host: {{ sql_database_host }}
+#  host: {{ sql_database_host }}
   username: {{ sql_username }}
   password: {{ sql_password }}
 
 development:
   adapter: postgresql
   database: redmine_development
-  host: localhost
+#  host: localhost
   username: root
   password: ""
 
@@ -28,7 +21,7 @@ development:
 test:
   adapter: postgresql
   database: redmine_test
-  host: localhost
+#  host: localhost
   username: root
   password: ""
 

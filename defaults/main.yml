@@ -4,6 +4,7 @@
 redmine_version: "3.1.0"
 redmine_topdir: "/home/redmine"
 redmine_appdir: "{{ redmine_topdir }}/redmine-{{ redmine_version }}"
+redmine_staticdir: "/var/www/redmine"
 
 # supported sql database types: postgresql, mysql (actually mariadb, on some distros)
 sql_database_type: "mysql"

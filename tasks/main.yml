@@ -133,6 +133,12 @@
    become: yes
    become_user: redmine
 
+ - name: Create staticdir directory for static file serving
+   file: path={{ redmine_staticdir }} state=directory recurse=yes
+
+ - name: Make copy of Redmine files for static file serving (eliminate symlinks)
+   shell: rsync -r --copy-links {{redmine_appdir}}/public {{redmine_staticdir}}
+
  - include: web/{{ app_server_type }}-{{ web_server_type }}.yml
 
  - include: firewall.yml

@@ -14,13 +14,14 @@ FastCGIserver {
 UrlToolkit {
 	ToolkitID = rails_urls
 	RequestURI isfile Return
+	Match \.(css|js|jpe?g|gif|htc|ico|png|html)$ Return
 	Match .* UseFastCGI redmine_fcgi
 }
 
 VirtualHost {
 	RequiredBinding = redmine_port
 	Hostname = {{ web_server_hostname }}
-	WebsiteRoot = {{ redmine_appdir }}
+	WebsiteRoot = {{ redmine_staticdir }}/public
 	TimeForCGI = 20
 	UseToolkit = rails_urls
         ## needed?

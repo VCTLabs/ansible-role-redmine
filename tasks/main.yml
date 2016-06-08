@@ -34,7 +34,7 @@
    file: path={{ redmine_topdir | dirname }} state=directory recurse=yes
 
  - name: Create the Redmine user
-   user: name=redmine system=yes home={{ redmine_topdir }}
+   user: name=redmine system=yes home={{ redmine_topdir }} groups={{ repo_group }}
 
  - name: Check if Redmine app directory already exists
    stat: path={{ redmine_appdir }}

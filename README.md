@@ -15,6 +15,7 @@ Role Variables
 * redmine_topdir
 * redmine_appdir
 * redmine_staticdir
+* repo_group
 * sql_database_type
 * sql_database_name
 * sql_database_host
